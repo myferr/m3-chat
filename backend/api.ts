@@ -7,37 +7,38 @@ const PORT = 2000;
 
 app.use(cors());
 
-app.get("/api/gen", async (req, res) => {
+app.get("/api/gen", (req, res) => {
   const model = req.query.model as string;
   const content = req.query.content as string;
 
   if (!model || !content) {
-    return res.status(400).send("Missing model or content");
+    res.status(400).send("Missing model or content");
+    return;
   }
 
-  try {
-    const ollama = spawn("ollama", ["run", model, content]);
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Transfer-Encoding", "chunked");
+  const ollama = spawn("ollama", ["run", model], {
+    stdio: ["pipe", "pipe", "pipe"],
+  });
 
-    ollama.stdout.on("data", (data: Buffer) => {
-      res.write(data.toString());
-    });
+  ollama.stdout.on("data", (chunk) => {
+    res.write(chunk);
+  });
 
-    ollama.stderr.on("data", (data: Buffer) => {
-      console.error(`[stderr]: ${data}`);
-    });
+  ollama.stderr.on("data", (chunk) => {
+    console.error(chunk.toString());
+  });
 
-    ollama.on("close", () => {
-      res.end();
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
-  }
+  ollama.on("close", () => {
+    res.end();
+  });
+
+  ollama.stdin.write(content);
+  ollama.stdin.end();
 });
 
 app.listen(PORT, () => {
-  console.log(`🦙 Ollama tunnel running at http://localhost:${PORT}`);
+  console.log(`Backend listening on http://localhost:${PORT}`);
 });
