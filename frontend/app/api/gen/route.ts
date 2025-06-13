@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     return new Response("Missing params", { status: 400 });
   }
 
-  const backendUrl = new URL(`${process.env.TUNNEL}`);
+  const backendUrl = new URL(`${process.env.TUNNEL}/api/gen`);
   backendUrl.searchParams.set("model", model);
   backendUrl.searchParams.set("content", content);
 
