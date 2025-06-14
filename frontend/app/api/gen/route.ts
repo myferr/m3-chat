@@ -1,4 +1,3 @@
-
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -25,7 +24,6 @@ export async function GET(request: NextRequest) {
       status: backendResponse.status,
       headers: {
         "Content-Type": backendResponse.headers.get("Content-Type") ?? "text/plain",
-        "Transfer-Encoding": "chunked",
       },
     });
   } catch (err) {
