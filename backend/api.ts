@@ -18,6 +18,7 @@ app.get("/api/gen", (req, res) => {
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Transfer-Encoding", "chunked");
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   const ollama = spawn("ollama", ["run", model], {
     stdio: ["pipe", "pipe", "pipe"],
