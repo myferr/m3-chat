@@ -1,11 +1,14 @@
 import express from "express";
 import { spawn } from "child_process";
 import cors from "cors";
+import compression from "compression";
 
 const app = express();
 const PORT = 2000;
 
 app.use(cors());
+
+app.use(compression());
 
 app.get("/api/gen", (req, res) => {
   const model = req.query.model as string;
@@ -18,7 +21,6 @@ app.get("/api/gen", (req, res) => {
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Transfer-Encoding", "chunked");
-  res.setHeader("Access-Control-Allow-Origin", "*");
 
   const ollama = spawn("ollama", ["run", model], {
     stdio: ["pipe", "pipe", "pipe"],
@@ -26,6 +28,9 @@ app.get("/api/gen", (req, res) => {
 
   ollama.stdout.on("data", (chunk) => {
     res.write(chunk);
+    if (typeof res.flush === "function") {
+      res.flush();
+    }
   });
 
   ollama.stderr.on("data", (chunk) => {
