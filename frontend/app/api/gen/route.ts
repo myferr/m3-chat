@@ -1,4 +1,3 @@
-export const runtime = "edge";
 
 import { NextRequest } from "next/server";
 
@@ -15,17 +14,21 @@ export async function GET(request: NextRequest) {
   backendUrl.searchParams.set("model", model);
   backendUrl.searchParams.set("content", content);
 
-  const backendResponse = await fetch(backendUrl.toString());
+  try {
+    const backendResponse = await fetch(backendUrl.toString());
 
-  if (!backendResponse.body) {
-    return new Response("No response body from backend", { status: 502 });
+    if (!backendResponse.body) {
+      return new Response("No response body from backend", { status: 502 });
+    }
+
+    return new Response(backendResponse.body, {
+      status: backendResponse.status,
+      headers: {
+        "Content-Type": backendResponse.headers.get("Content-Type") ?? "text/plain",
+        "Transfer-Encoding": "chunked",
+      },
+    });
+  } catch (err) {
+    return new Response(`Error: ${(err as Error).message}`, { status: 500 });
   }
-
-  return new Response(backendResponse.body, {
-    status: backendResponse.status,
-    headers: {
-      "Content-Type":
-        backendResponse.headers.get("Content-Type") ?? "text/plain",
-    },
-  });
 }
